@@ -15,7 +15,8 @@ export default function Home() {
 
   const [query, setQuery] = useState("");
   const [searching, setSearching] = useState(false);
-  const [answer, setAnswer] = useState(null);
+  const [shortDescription, setShortDescription] = useState(null);
+  const [longDescription, setLongDescription] = useState(null);
   const [citations, setCitations] = useState([]);
   const [askError, setAskError] = useState("");
 
@@ -64,7 +65,8 @@ export default function Home() {
 
     setSearching(true);
     setAskError("");
-    setAnswer(null);
+    setShortDescription(null);
+    setLongDescription(null);
 
     const res = await fetch("/api/ask", {
       method: "POST",
@@ -74,7 +76,8 @@ export default function Home() {
     const data = await res.json();
 
     if (res.ok) {
-      setAnswer(data.answer);
+      setShortDescription(data.shortDescription);
+      setLongDescription(data.longDescription);
       setCitations(data.citations);
     } else {
       setAskError(data.error);
@@ -167,17 +170,29 @@ export default function Home() {
 
           {askError && <p className="mt-3 text-sm text-red-600">{askError}</p>}
 
-          {answer && (
-            <div className="mt-4 rounded border border-black/[.08] px-4 py-3 text-sm dark:border-white/[.145]">
-              <p className="text-black dark:text-zinc-50">{answer}</p>
-              {citations.length > 0 && (
-                <div className="mt-3 border-t border-black/[.08] pt-2 text-xs text-zinc-500 dark:border-white/[.145]">
-                  Sources:{" "}
-                  {citations
-                    .map((c) => `${c.documentName} (chunk ${c.chunkIndex}, score ${c.score.toFixed(3)})`)
-                    .join(" · ")}
+          {shortDescription && (
+            <div className="mt-4 flex flex-col gap-3">
+              <div className="rounded border border-black/[.08] px-4 py-3 text-sm dark:border-white/[.145]">
+                <div className="mb-1 text-xs font-medium uppercase tracking-wide text-zinc-500">
+                  Short description
                 </div>
-              )}
+                <p className="text-black dark:text-zinc-50">{shortDescription}</p>
+              </div>
+
+              <div className="rounded border border-black/[.08] px-4 py-3 text-sm dark:border-white/[.145]">
+                <div className="mb-1 text-xs font-medium uppercase tracking-wide text-zinc-500">
+                  Long description
+                </div>
+                <p className="text-black dark:text-zinc-50">{longDescription}</p>
+                {citations.length > 0 && (
+                  <div className="mt-3 border-t border-black/[.08] pt-2 text-xs text-zinc-500 dark:border-white/[.145]">
+                    Sources:{" "}
+                    {citations
+                      .map((c) => `${c.documentName} (chunk ${c.chunkIndex}, score ${c.score.toFixed(3)})`)
+                      .join(" · ")}
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
