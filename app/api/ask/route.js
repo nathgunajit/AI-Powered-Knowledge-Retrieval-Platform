@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { searchChunks } from "@/lib/search";
 
 const SYSTEM_PROMPT = `You answer questions using ONLY the provided document excerpts.
@@ -10,6 +10,8 @@ Rules:
   "Insufficient information found in the available documents to answer this query accurately."
 Keep answers concise (2-5 sentences).`;
 
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+
 export async function POST(request) {
   const { query } = await request.json();
 
@@ -17,9 +19,9 @@ export async function POST(request) {
     return NextResponse.json({ error: "Query is required" }, { status: 400 });
   }
 
-  if (!process.env.ANTHROPIC_API_KEY) {
+  if (!process.env.GEMINI_API_KEY) {
     return NextResponse.json(
-      { error: "ANTHROPIC_API_KEY is not set. Add it to .env.local and restart the dev server." },
+      { error: "GEMINI_API_KEY is not set. Add it to .env.local and restart the dev server." },
       { status: 500 }
     );
   }
@@ -37,25 +39,21 @@ export async function POST(request) {
     .map((m, i) => `[${i + 1}] (${m.documentName}, chunk ${m.chunkIndex})\n${m.text}`)
     .join("\n\n");
 
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+  const model = genAI.getGenerativeModel({
+    model: GEMINI_MODEL,
+    systemInstruction: SYSTEM_PROMPT,
+  });
 
   let answer;
   try {
-    const response = await client.messages.create({
-      model: "claude-sonnet-5",
-      max_tokens: 500,
-      system: SYSTEM_PROMPT,
-      messages: [
-        {
-          role: "user",
-          content: `Question: ${query}\n\nDocument excerpts:\n${context}`,
-        },
-      ],
-    });
-    answer = response.content[0].text;
+    const result = await model.generateContent(
+      `Question: ${query}\n\nDocument excerpts:\n${context}`
+    );
+    answer = result.response.text();
   } catch (err) {
     return NextResponse.json(
-      { error: `Claude API error: ${err.message}` },
+      { error: `Gemini API error: ${err.message}` },
       { status: 502 }
     );
   }

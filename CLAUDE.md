@@ -41,17 +41,32 @@ Explicitly OUT of scope for v0: authentication/RBAC, GIS, OCR, knowledge
 graph, multilingual support, analytics dashboard, Kubernetes/Docker,
 workflow/approval states. These are future phases, not missing bugs.
 
-## Tech stack (v0)
+## Tech stack (v0) — as actually built
 
 - **Language:** JavaScript / Node.js
 - **App framework:** Next.js (App Router) — UI pages + API routes in one
   project, no separate frontend/backend split, no CORS wiring to learn yet
-- **Storage:** local filesystem for uploaded files; SQLite for metadata
-  (via `better-sqlite3`)
-- **Embeddings / vector search:** local JS vector store (e.g. `vectra`) or
-  the chromadb JS client — no separate server required to start
-- **LLM:** Claude API via `@anthropic-ai/sdk` (for answer generation over
-  retrieved chunks)
+- **Storage:** local filesystem for uploaded files (`data/uploads/`);
+  SQLite for metadata + chunks (via `sqlite3`, not `better-sqlite3` —
+  `better-sqlite3` requires compiling native code with Python/VS Build
+  Tools, which this machine doesn't have; `sqlite3` ships prebuilt
+  binaries and just works)
+- **Text extraction:** `pdf-parse` (v2 API: `new PDFParse({data}).getText()`,
+  not the old default-function export), `mammoth` (DOCX)
+- **Embeddings / vector search:** local embedding model via
+  `@xenova/transformers` (`Xenova/all-MiniLM-L6-v2`, runs in-process, no
+  API key/account needed); vectors stored as JSON in SQLite, cosine
+  similarity computed manually in JS (`lib/embeddings.js`) — no separate
+  vector DB needed at this scale
+- **LLM (answer generation):** Google Gemini API via
+  `@google/generative-ai` (model configurable via `GEMINI_MODEL` env var,
+  default `gemini-2.5-flash`). Originally wired to Claude via
+  `@anthropic-ai/sdk`, switched to Gemini per preference — the code only
+  needs a `searchChunks()` result + a system prompt, so swapping LLM
+  providers is a small, isolated change (see `app/api/ask/route.js`).
+- **Next.js config note:** `pdf-parse` and `sqlite3` must be listed in
+  `serverExternalPackages` in `next.config.mjs`, otherwise Turbopack
+  breaks their native/worker-loading code.
 
 Rationale: minimize the number of new concepts introduced at once. A
 beginner should be able to run `npm run dev` and see the whole system —
