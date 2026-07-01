@@ -104,3 +104,51 @@ answer with citation.
 top search results and generate a concise answer with a citation back
 to the source document, per the MVP's "ask a question -> get an answer"
 goal. Will need an Anthropic API key from the user for this.
+
+## 2026-07-01 (Anthropic API key + Q&A wiring)
+
+- Created `.env.local` (gitignored) for `ANTHROPIC_API_KEY`. Had trouble
+  getting the key saved to the right file — first two save attempts via
+  the IDE didn't actually write to disk (file timestamp never changed).
+  Resolved by opening the exact file path directly in Notepad instead.
+- Note: the key's raw value briefly passed through the session
+  transcript via an automatic file-diff notification when it was saved
+  (not something either of us triggered directly) — flagged to Gunajit
+  as a reason to consider rotating the key later.
+- Verified the key itself is valid (passes auth), but the Anthropic
+  account currently has insufficient credit balance — needs credits
+  added at console.anthropic.com before Claude calls will succeed.
+  This is an account/billing issue, not a code issue.
+- Installed `@anthropic-ai/sdk`. Added `POST /api/ask`: retrieves top
+  chunks via `lib/search.js` (refactored out of `/api/search`), sends
+  them to Claude with a hallucination-prevention system prompt (only
+  answer from provided excerpts, cite sources, say so if insufficient
+  info — per the original spec's section 15 policy), returns answer +
+  citations. UI now shows a synthesized answer instead of raw snippets.
+- **Found and fixed a real bug** while testing: Gunajit uploaded his own
+  CV (`Gunajit_Nath_CV_IT_EXPERT.pdf`) through the browser and it failed
+  with "pdfParse is not a function". Root cause: the installed
+  `pdf-parse` is v2, which replaced the old default-function export
+  with a `PDFParse` class (`new PDFParse({ data }).getText()`). Fixed
+  `lib/textExtraction.js` accordingly.
+- Hit a second bug on retry: Turbopack broke `pdf-parse`'s internal
+  PDF.js worker loading ("Setting up fake worker failed"). Fixed by
+  adding `serverExternalPackages: ["pdf-parse", "sqlite3"]` to
+  `next.config.mjs` so Next.js doesn't try to bundle these.
+- Re-verified end-to-end using the real CV PDF: extraction, chunking,
+  embedding, and search all returned correct, relevant results (e.g.
+  a query about "years of experience" correctly surfaced the "11+
+  years" chunk as the top match).
+- Cleaned up two broken intermediate upload attempts, kept the working
+  processed CV record.
+- Added `.claude/settings.local.json` (machine-local permissions) to
+  `.gitignore` — not project code, shouldn't be committed.
+
+**Current state:** full pipeline works end-to-end — upload (PDF/DOCX/
+TXT) -> extract -> chunk -> embed -> semantic search -> Claude answer
+generation with citations — except the final Claude call is blocked by
+Gunajit's account credit balance, not by anything in the code.
+**Next step:** once credits are added, do a full manual test of the
+"Ask a question" UI in the browser. After that, Phase 1 work per
+`CLAUDE.md`'s roadmap (hybrid search, metadata filters, better answer
+formatting).
