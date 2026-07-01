@@ -73,3 +73,34 @@ search/RAG features built yet.
 uploads). No text extraction, chunking, embeddings, or search/Q&A yet.
 **Next step:** extract text from uploaded PDFs/DOCX/TXT, chunk it, and
 generate embeddings so search becomes possible.
+
+## 2026-07-01 (extraction, chunking, embeddings, search)
+
+- Installed `pdf-parse`, `mammoth` (text extraction) and
+  `@xenova/transformers` (local embedding model, no API key/account
+  needed — runs `Xenova/all-MiniLM-L6-v2` in-process).
+- Added `lib/textExtraction.js`, `lib/chunking.js` (fixed-size chunks
+  w/ overlap), `lib/embeddings.js` (embed + cosine similarity).
+- Upload flow now processes each file synchronously after saving:
+  extract -> chunk -> embed each chunk -> store in a new `chunks`
+  table in SQLite. Added `status`/`error` columns to `documents` so
+  the UI can show processing/ready/error.
+- Added `POST /api/search`: embeds the query, cosine-similarity ranks
+  all stored chunks, returns top 5 with document name + score.
+- UI: document list shows status; added a search box + ranked results.
+- Had to reset the local `data/app.db` once after changing the schema
+  (fine in dev; a real migration system would matter once this has
+  real user data).
+- Verified end-to-end: uploaded a small multi-fact `.txt` file, waited
+  for `status: "ready"`, then queried "What is the approved budget for
+  Udmari Beel?" and got back the exact chunk containing that fact.
+  Cleaned up test data before committing.
+
+**Current state:** can upload a document and semantically search its
+content, getting back raw matching chunks + similarity scores. No LLM-
+generated answer yet — search returns snippets, not a synthesized
+answer with citation.
+**Next step:** wire up Claude (`@anthropic-ai/sdk`) to take the
+top search results and generate a concise answer with a citation back
+to the source document, per the MVP's "ask a question -> get an answer"
+goal. Will need an Anthropic API key from the user for this.
