@@ -22,6 +22,8 @@ Thumbs.db
 # vercel
 .vercel
 
-# db / cache (leftover from earlier Python-based plan, harmless to keep)
+# db / uploaded files
 *.db
 *.sqlite3
+/data/uploads/*
+!/data/uploads/.gitkeep
