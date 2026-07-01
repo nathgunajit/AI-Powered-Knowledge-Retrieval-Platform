@@ -49,3 +49,27 @@ search -> Q&A with citation).
 **Current state:** Next.js app boots (default starter page). No upload/
 search/RAG features built yet.
 **Next step:** build the upload -> chunk/embed -> search -> Q&A flow.
+
+## 2026-07-01 (upload feature)
+
+- Tried `better-sqlite3`, install failed: needs native compilation
+  (Python + Visual Studio Build Tools not present on this machine).
+  Rather than asking to install heavy system build tools, switched to
+  the `sqlite3` package, which ships prebuilt binaries — installed and
+  verified working with no compile step.
+- Built the upload feature:
+  - `lib/db.js` — SQLite connection + `documents` table (id, name,
+    stored name, size, mimeType, uploadedAt).
+  - `POST /api/upload` — validates file type (.pdf/.docx/.txt), saves
+    to `data/uploads/`, records metadata in SQLite.
+  - `GET /api/documents` — lists uploaded documents.
+  - Home page (`app/page.js`) — upload form + list of uploaded docs.
+- Verified end-to-end with curl: valid `.txt` upload succeeds, appears
+  in the list, and the file lands in `data/uploads/`; a disallowed
+  `.exe` upload is correctly rejected with an error message.
+- Committed and pushed.
+
+**Current state:** upload feature works (store file + metadata, list
+uploads). No text extraction, chunking, embeddings, or search/Q&A yet.
+**Next step:** extract text from uploaded PDFs/DOCX/TXT, chunk it, and
+generate embeddings so search becomes possible.
