@@ -28,3 +28,24 @@ Newest entries at the bottom. Keep entries short — what was done and why.
 **Current state:** planning complete, no application code written yet.
 **Next step:** scaffold the Next.js MVP app (upload -> chunk/embed ->
 search -> Q&A with citation).
+
+## 2026-07-01 (later)
+
+- Agreed on a working rule: ask for approval before any step needing
+  network/system access or that creates files outside the project folder.
+  Saved as a standing memory for future sessions.
+- Scaffolded the Next.js app (App Router, Tailwind, ESLint, JS not TS) via
+  `create-next-app`, after getting approval since it needs npm/network
+  access. Had to generate it in a temp folder first (create-next-app
+  refuses non-empty directories) then merge the generated files into the
+  project root, keeping our existing `CLAUDE.md`/`PROJECT_LOG.md` instead
+  of the tool's stub versions.
+- Ran `npm install` in the project folder, then started the dev server
+  and confirmed `http://localhost:3000` returns HTTP 200 before committing.
+- Renamed the app in `package.json` from the default `nextapp` to
+  `ai-knowledge-retrieval-platform`.
+- Committed and pushed the scaffold.
+
+**Current state:** Next.js app boots (default starter page). No upload/
+search/RAG features built yet.
+**Next step:** build the upload -> chunk/embed -> search -> Q&A flow.
