@@ -1,9 +1,27 @@
-__pycache__/
-*.pyc
-.venv/
-venv/
-env/
+# dependencies
+/node_modules
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# testing
+/coverage
+
+# misc
+.DS_Store
+*.pem
+Thumbs.db
+
+# env files
+.env*
+
+# vercel
+.vercel
+
+# db / cache (leftover from earlier Python-based plan, harmless to keep)
 *.db
 *.sqlite3
-.streamlit/secrets.toml
-.env
