@@ -19,6 +19,9 @@ Thumbs.db
 # env files
 .env*
 
+# local Claude Code permissions (machine-specific)
+.claude/settings.local.json
+
 # vercel
 .vercel
 

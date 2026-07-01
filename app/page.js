@@ -15,7 +15,9 @@ export default function Home() {
 
   const [query, setQuery] = useState("");
   const [searching, setSearching] = useState(false);
-  const [results, setResults] = useState(null);
+  const [answer, setAnswer] = useState(null);
+  const [citations, setCitations] = useState([]);
+  const [askError, setAskError] = useState("");
 
   async function loadDocuments() {
     const res = await fetch("/api/documents");
@@ -61,13 +63,22 @@ export default function Home() {
     if (!query.trim()) return;
 
     setSearching(true);
-    const res = await fetch("/api/search", {
+    setAskError("");
+    setAnswer(null);
+
+    const res = await fetch("/api/ask", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ query }),
     });
     const data = await res.json();
-    setResults(res.ok ? data.results : []);
+
+    if (res.ok) {
+      setAnswer(data.answer);
+      setCitations(data.citations);
+    } else {
+      setAskError(data.error);
+    }
     setSearching(false);
   }
 
@@ -136,7 +147,7 @@ export default function Home() {
         </div>
 
         <div>
-          <h2 className="mb-3 text-lg font-medium text-black dark:text-zinc-50">Search</h2>
+          <h2 className="mb-3 text-lg font-medium text-black dark:text-zinc-50">Ask a question</h2>
           <form onSubmit={handleSearch} className="flex items-center gap-3">
             <input
               type="text"
@@ -150,31 +161,24 @@ export default function Home() {
               disabled={searching}
               className="rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background hover:bg-[#383838] disabled:opacity-50 dark:hover:bg-[#ccc]"
             >
-              {searching ? "Searching..." : "Search"}
+              {searching ? "Thinking..." : "Ask"}
             </button>
           </form>
 
-          {results && (
-            <ul className="mt-4 flex flex-col gap-3">
-              {results.length === 0 ? (
-                <p className="text-sm text-zinc-500">No matching content found.</p>
-              ) : (
-                results.map((r, i) => (
-                  <li
-                    key={i}
-                    className="rounded border border-black/[.08] px-4 py-3 text-sm dark:border-white/[.145]"
-                  >
-                    <div className="mb-1 flex justify-between text-xs text-zinc-500">
-                      <span>
-                        {r.documentName} (chunk {r.chunkIndex})
-                      </span>
-                      <span>score: {r.score.toFixed(3)}</span>
-                    </div>
-                    <p className="text-black dark:text-zinc-50">{r.text}</p>
-                  </li>
-                ))
+          {askError && <p className="mt-3 text-sm text-red-600">{askError}</p>}
+
+          {answer && (
+            <div className="mt-4 rounded border border-black/[.08] px-4 py-3 text-sm dark:border-white/[.145]">
+              <p className="text-black dark:text-zinc-50">{answer}</p>
+              {citations.length > 0 && (
+                <div className="mt-3 border-t border-black/[.08] pt-2 text-xs text-zinc-500 dark:border-white/[.145]">
+                  Sources:{" "}
+                  {citations
+                    .map((c) => `${c.documentName} (chunk ${c.chunkIndex}, score ${c.score.toFixed(3)})`)
+                    .join(" · ")}
+                </div>
               )}
-            </ul>
+            </div>
           )}
         </div>
       </main>
