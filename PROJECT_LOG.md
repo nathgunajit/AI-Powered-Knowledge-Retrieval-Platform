@@ -152,3 +152,29 @@ Gunajit's account credit balance, not by anything in the code.
 "Ask a question" UI in the browser. After that, Phase 1 work per
 `CLAUDE.md`'s roadmap (hybrid search, metadata filters, better answer
 formatting).
+
+## 2026-07-01 (switched to Gemini)
+
+- Rather than wait on Anthropic credits, switched answer generation to
+  Google Gemini: added `GEMINI_API_KEY` to `.env.local` (again via
+  opening the file directly in Notepad, per the lesson from the
+  Anthropic key setup), installed `@google/generative-ai`, removed
+  `@anthropic-ai/sdk`.
+- Rewrote `app/api/ask/route.js` to use Gemini (`gemini-2.5-flash` by
+  default, overridable via `GEMINI_MODEL`) with the same search +
+  system-prompt logic as before — confirms the search/RAG layer was
+  built provider-agnostic, so swapping LLMs only touched one file.
+- Brought `CLAUDE.md`'s tech stack section back in sync with reality —
+  it had drifted (still said better-sqlite3/vectra/Claude from earlier
+  plans that changed during implementation).
+- Verified end-to-end: a real question ("years of experience?") got a
+  correct, cited answer; an unrelated question ("capital of France?")
+  correctly triggered the hallucination-prevention "insufficient
+  information" response.
+
+**Current state:** full MVP pipeline works end-to-end with Gemini as
+the answer-generation LLM — upload, extract, chunk, embed, search, and
+cited Q&A all verified working via the browser/API.
+**Next step:** Gunajit's choice — either do a full manual browser
+walkthrough of the finished MVP, or move on to Phase 1 per `CLAUDE.md`'s
+roadmap (hybrid search, metadata filters, better answer formatting).
