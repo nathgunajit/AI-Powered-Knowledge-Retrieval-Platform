@@ -43,16 +43,20 @@ workflow/approval states. These are future phases, not missing bugs.
 
 ## Tech stack (v0)
 
-- **Language:** Python
-- **App framework:** Streamlit (single app — UI + logic in one place,
-  no separate frontend/backend split, no CORS/API wiring to learn yet)
+- **Language:** JavaScript / Node.js
+- **App framework:** Next.js (App Router) — UI pages + API routes in one
+  project, no separate frontend/backend split, no CORS wiring to learn yet
 - **Storage:** local filesystem for uploaded files; SQLite for metadata
-- **Embeddings / vector search:** chromadb (local, no server to run)
-- **LLM:** Claude API (for answer generation over retrieved chunks)
+  (via `better-sqlite3`)
+- **Embeddings / vector search:** local JS vector store (e.g. `vectra`) or
+  the chromadb JS client — no separate server required to start
+- **LLM:** Claude API via `@anthropic-ai/sdk` (for answer generation over
+  retrieved chunks)
 
 Rationale: minimize the number of new concepts introduced at once. A
-beginner should be able to run `streamlit run app.py` and see the whole
-system, rather than juggling multiple services.
+beginner should be able to run `npm run dev` and see the whole system —
+upload, search, and chat UI — in one project, rather than juggling
+multiple services or languages.
 
 ## Roadmap (phases after v0 works)
 
@@ -65,9 +69,8 @@ system, rather than juggling multiple services.
 4. **Phase 3:** auth + RBAC (roles: admin/librarian/dept user/public),
    audit logs, version control/approval workflow.
 5. **Phase 4:** GIS integration, knowledge graph, analytics dashboard.
-6. **Phase 5:** move off Streamlit to a real frontend/backend split
-   (React/Next.js + FastAPI) if/when the app outgrows a single-page app;
-   containerize with Docker.
+6. **Phase 5:** split into a dedicated backend service (if/when the app
+   outgrows Next.js API routes) and containerize with Docker.
 
 Do not jump ahead a phase until the current one works end-to-end.
 
